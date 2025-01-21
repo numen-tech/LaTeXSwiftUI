@@ -347,4 +347,24 @@ final class ParserTests: XCTestCase {
     assertComponent(components, 1, equation, .namedNoNumberEquation)
   }
 
+  func testEscapedDollarSignDecimals() {
+    let input = "This costs \\$5.99 and this is $\\pi$"
+    let components = Parser.parse(input)
+    XCTAssertEqual(components.count, 4)
+    assertComponent(components, 0, "This costs ", .text)
+    assertComponent(components, 1, "$5.99", .text)
+    assertComponent(components, 2, " and this is ", .text)
+    assertComponent(components, 3, "\\pi", .inlineEquation)
+  }
+
+func testEscapedDollarSignNoDecimals() {
+    let input = "This costs \\$2 and this is $\\pi$"
+    let components = Parser.parse(input)
+    XCTAssertEqual(components.count, 4)
+    assertComponent(components, 0, "This costs ", .text)
+    assertComponent(components, 1, "$2", .text)
+    assertComponent(components, 2, " and this is ", .text)
+    assertComponent(components, 3, "\\pi", .inlineEquation)
+  }
+
 }

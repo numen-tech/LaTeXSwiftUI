@@ -38,6 +38,11 @@ internal struct Parser {
   }
   
   // MARK: Private properties
+  static let escapedDollar =  EquationComponent(
+    regex: #/\\(\$\d+\.?\d*)/#,
+    terminatingRegex: #/\b/#,
+    equation: .text
+  )
   
   /// An inline equation component.
   static let inline = EquationComponent(
@@ -76,6 +81,7 @@ internal struct Parser {
   
   // Order matters
   static let allEquations: [EquationComponent] = [
+    escapedDollar,
     inline,
     inlineParen,
     tex,
@@ -84,6 +90,13 @@ internal struct Parser {
     namedNoNumber
   ]
   
+}
+
+private func replaceLeadingEscapedDollarSigns(_ input: String) -> String {
+    if input.hasPrefix("\\$") {
+      return String(input[input.index(input.startIndex, offsetBy:1)...])
+    }
+    return input
 }
 
 // MARK: Static methods
@@ -188,7 +201,12 @@ extension Parser {
     if !stringBeforeEquation.isEmpty {
       components.append(Component(text: stringBeforeEquation, type: .text))
     }
-    components.append(Component(text: equationString, type: smallestMatch.0.equation))
+    if smallestMatch.0.equation == .text {
+      components.append(Component(text: replaceLeadingEscapedDollarSigns(equationString), type: smallestMatch.0.equation))
+    } else {
+      components.append(Component(text: equationString, type: smallestMatch.0.equation))
+    }
+    
     if remainingString.isEmpty {
       return components
     }
